@@ -41,11 +41,13 @@ class SnoopyDriver extends Driver{
         if(!$url || !preg_match('/http[s]?:\/\/[[A-Za-z0-9_?.%&=\/#@!]*/i', $url)){
             continue;
         }	
+        /*
 		$arr  = parse_url($url);
 		$host = $arr['scheme'] . '://' . $arr['host'] . (isset($arr['port']) ? ':' . $arr['port'] : '');
 		$ip   = 'http://' . host_to_ip($host);
 		var_dump($ip);
 		$url  = str_replace($host, $ip, $url);
+         */
         $this->engine->fetch($url);	
         if($this->engine && $this->engine->status == 200){
             $this->storage->save($url, $this->engine);	
