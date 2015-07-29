@@ -35,10 +35,16 @@ if(!function_exists('check_path')){
 
 if(!function_exists('ini_redis')){
     function init_redis($config = array()){
+		static $_redis = array();
+		$key = !$config ? md5('config') : md5(implode('', $config));
+		if(isset($_redis[$key]) && $_redis[$key]){
+			return $_redis[$key];	
+		}
         //加载redis配置
         $config = $config ? $config : Loader::load_config('redis');
         $redis  = new Redis();
         $redis->connect($config['host'], $config['port']);
+		$_redis[$key] = $redis;
         return $redis;
     }
 }
@@ -164,6 +170,41 @@ if(!function_exists('push_to_crawler')){
         $redis->hset($key_exist, md5($url), 1);
     }
 }
+
+/**
+ *
+ **/
+if(!function_exists('host_to_ip')){
+	function host_to_ip($host){
+		$redis = init_redis();	
+		$key   = 'dnscachehost_to_ip';
+		$ips   = array();
+		if(!($ips = $redis->hget($key, md5($host)))){
+			Loader::load('lib.dns.DNSRecord');
+			$records = DNSRecord::get_records($host);	
+			if($records){
+				$ips = serialize(array_column($records, 'ip'));	
+			}
+		}
+		if($ips){
+			$redis->hset($key, md5($host), $ips);
+			$ips = unserialize($ips);
+			return $ips[rand(0, intval(count($ips) - 1))];
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 if(!function_exists('parser_monitor')){
     function my_mysql_query($sql){
